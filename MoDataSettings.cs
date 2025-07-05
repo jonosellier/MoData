@@ -3,6 +3,10 @@ using Playnite.SDK.Data;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
 
@@ -39,6 +43,7 @@ namespace MoData
             set
             {
                 _diskUsages = value ?? new List<DiskUsage>();
+                PathToDiskConverter = new PathToDiskUsageConverter(_diskUsages);
                 OnPropertyChanged();
             }
         }
@@ -122,6 +127,7 @@ namespace MoData
         public ICommand OpenAppsSettings => new RelayCommand(WindowsSettingsHelper.OpenAppsAndFeatures);
         public ICommand OpenNetworkSettings => new RelayCommand(WindowsSettingsHelper.OpenNetworkSettings);
         public ICommand MoDetails { get; set; }
+        public PathToDiskUsageConverter PathToDiskConverter { set; get; } = null;
 
     }
 
@@ -228,6 +234,58 @@ namespace MoData
                 Process.Start("ms-settings:privacy-location");
             }
             catch (Exception) { }
+        }
+    }
+
+    public class PathToDiskUsageConverter : IValueConverter
+    {
+        private readonly List<DiskUsage> _diskUsages;
+
+        public PathToDiskUsageConverter(List<DiskUsage> diskUsages)
+        {
+            _diskUsages = diskUsages ?? throw new ArgumentNullException(nameof(diskUsages));
+        }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
+                return null;
+
+            string installPath = value.ToString();
+
+            try
+            {
+                // Get the root directory (drive) of the install path
+                string rootPath = Path.GetPathRoot(installPath);
+
+                if (string.IsNullOrEmpty(rootPath))
+                    return null;
+
+                // Normalize the root path (remove trailing backslash if present, except for root)
+                rootPath = rootPath.TrimEnd('\\');
+                if (rootPath.Length == 2 && rootPath[1] == ':') // Drive letter like "C:"
+                    rootPath += "\\";
+
+                // Find the matching DiskUsage object
+                // This assumes the Label property contains the drive letter or root path
+                var matchingDisk = _diskUsages.FirstOrDefault(disk =>
+                    string.Equals(disk.Label, rootPath, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(disk.Label, rootPath.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) ||
+                    (rootPath.Length >= 2 && string.Equals(disk.Label, rootPath.Substring(0, 2), StringComparison.OrdinalIgnoreCase)));
+
+                return matchingDisk;
+            }
+            catch (Exception ex)
+            {
+                // Handle invalid paths gracefully
+                System.Diagnostics.Debug.WriteLine($"Error in PathToDiskUsageConverter: {ex.Message}");
+                return null;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException("ConvertBack is not supported for PathToDiskUsageConverter");
         }
     }
 }
