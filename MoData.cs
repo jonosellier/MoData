@@ -108,15 +108,16 @@ namespace MoData
             MoDetailsWindow.Width = parent.Width;
             MoDetailsWindow.Title = "MoData";
 
-            string xamlString = @"<Viewbox Stretch=""Uniform"" 
-                                   xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
-                                   xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"">
-                              <Grid Width=""1920"" Height=""1080"">
-                                  <ContentControl x:Name=""MoDataWindow""
-                                                  Focusable=""False""
-                                                  Style=""{DynamicResource MoDataWindowStyle}"" />
-                              </Grid>
-                          </Viewbox>";
+            string xamlString = @"
+            <Viewbox Stretch=""Uniform"" 
+                     xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+                     xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"">
+                <Grid Width=""1920"" Height=""1080"">
+                    <ContentControl x:Name=""MoDataWindow""
+                                    Focusable=""False""
+                                    Style=""{DynamicResource MoDataWindowStyle}"" />
+                </Grid>
+            </Viewbox>";
 
             // Parse the XAML string
             var element = (FrameworkElement)XamlReader.Parse(xamlString);
@@ -172,7 +173,7 @@ namespace MoData
 
         public override void OnControllerButtonStateChanged(OnControllerButtonStateChangedArgs args)
         {
-            if(MoDetailsWindow != null && MoDetailsWindow.IsVisible && args.Button == ControllerInput.B && args.State == ControllerInputState.Pressed)
+            if (MoDetailsWindow != null && MoDetailsWindow.IsVisible && args.Button == ControllerInput.B && args.State == ControllerInputState.Pressed)
             {
                 MoDetailsWindow.Close();
                 MoDetailsWindow = null;
