@@ -43,7 +43,6 @@ namespace MoData
             set
             {
                 _diskUsages = value ?? new List<DiskUsage>();
-                PathToDiskConverter = new PathToDiskUsageConverter(_diskUsages);
                 OnPropertyChanged();
             }
         }
@@ -127,8 +126,6 @@ namespace MoData
         public ICommand OpenAppsSettings => new RelayCommand(WindowsSettingsHelper.OpenAppsAndFeatures);
         public ICommand OpenNetworkSettings => new RelayCommand(WindowsSettingsHelper.OpenNetworkSettings);
         public ICommand MoDetails { get; set; }
-        public PathToDiskUsageConverter PathToDiskConverter { set; get; } = null;
-
     }
 
     public class MoDataSettingsViewModel : ObservableObject, ISettings
@@ -239,11 +236,11 @@ namespace MoData
 
     public class PathToDiskUsageConverter : IValueConverter
     {
-        private readonly List<DiskUsage> _diskUsages;
+        private readonly MoData plugin;
 
-        public PathToDiskUsageConverter(List<DiskUsage> diskUsages)
+        public PathToDiskUsageConverter(MoData pluginInstance)
         {
-            _diskUsages = diskUsages ?? throw new ArgumentNullException(nameof(diskUsages));
+            plugin = pluginInstance;
         }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -268,7 +265,7 @@ namespace MoData
 
                 // Find the matching DiskUsage object
                 // This assumes the Label property contains the drive letter or root path
-                var matchingDisk = _diskUsages.FirstOrDefault(disk =>
+                var matchingDisk = plugin.settings.Settings.DiskUsages.FirstOrDefault(disk =>
                     string.Equals(disk.Label, rootPath, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(disk.Label, rootPath.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) ||
                     (rootPath.Length >= 2 && string.Equals(disk.Label, rootPath.Substring(0, 2), StringComparison.OrdinalIgnoreCase)));

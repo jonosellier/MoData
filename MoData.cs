@@ -32,6 +32,8 @@ namespace MoData
         public NetworkDataService WifiService = new NetworkDataService();
         DiskStatsService DiskService = new DiskStatsService();
 
+        public PathToDiskUsageConverter PathToDiskConverter { set; get; } = null;
+
         public MoData(IPlayniteAPI api) : base(api)
         {
             settings = new MoDataSettingsViewModel(this);
@@ -49,6 +51,16 @@ namespace MoData
             {
                 SourceName = "MoData",
                 SettingsRoot = $"settings.Settings"
+            });
+
+            PathToDiskConverter = new PathToDiskUsageConverter(this);
+
+            AddConvertersSupport(new AddConvertersSupportArgs
+            {
+                Converters = new System.Collections.Generic.List<System.Windows.Data.IValueConverter>
+                {
+                    PathToDiskConverter
+                }
             });
         }
 
