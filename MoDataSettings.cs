@@ -249,12 +249,12 @@ namespace MoData
                 return null;
 
             string installPath = value.ToString();
+            string objPath = parameter?.ToString();
 
             try
             {
                 // Get the root directory (drive) of the install path
                 string rootPath = Path.GetPathRoot(installPath);
-
                 if (string.IsNullOrEmpty(rootPath))
                     return null;
 
@@ -264,13 +264,29 @@ namespace MoData
                     rootPath += "\\";
 
                 // Find the matching DiskUsage object
-                // This assumes the Label property contains the drive letter or root path
                 var matchingDisk = plugin.settings.Settings.DiskUsages.FirstOrDefault(disk =>
                     string.Equals(disk.Label, rootPath, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(disk.Label, rootPath.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) ||
                     (rootPath.Length >= 2 && string.Equals(disk.Label, rootPath.Substring(0, 2), StringComparison.OrdinalIgnoreCase)));
-
-                return matchingDisk;
+                switch (objPath)
+                {
+                    case "UsedSpaceString":
+                        return matchingDisk?.UsedSpaceString;
+                    case "FreeSpaceString":
+                        return matchingDisk?.FreeSpaceString;
+                    case "TotalSpaceString":
+                        return matchingDisk?.TotalSpaceString;
+                    case "UsedPercentageString":
+                        return matchingDisk?.UsedPercentageString;
+                    case "UsedPercentageAngle":
+                        return matchingDisk?.UsedPercentageAngle;
+                    case "Label":
+                        return matchingDisk?.Label;
+                    case null:
+                        return matchingDisk?.Label;
+                    default:
+                        return matchingDisk?.Label;
+                }
             }
             catch (Exception ex)
             {

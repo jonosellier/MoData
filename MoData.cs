@@ -1,13 +1,14 @@
 ﻿using Playnite.SDK;
 using Playnite.SDK.Events;
-using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Markup;
 
@@ -30,7 +31,10 @@ namespace MoData
         private readonly object timerLock = new object();
 
         public NetworkDataService WifiService = new NetworkDataService();
+
         DiskStatsService DiskService = new DiskStatsService();
+
+        private GlobalKeyboardHook keyboardHook;
 
         public PathToDiskUsageConverter PathToDiskConverter { set; get; } = null;
 
@@ -41,6 +45,9 @@ namespace MoData
             {
                 HasSettings = false
             };
+
+            keyboardHook = new GlobalKeyboardHook();
+            keyboardHook.KeyPressed += OnKeyPressed;
 
             Api = api;
             settings.Settings.MoDetails = new RelayCommand(() =>
@@ -57,11 +64,22 @@ namespace MoData
 
             AddConvertersSupport(new AddConvertersSupportArgs
             {
-                Converters = new System.Collections.Generic.List<System.Windows.Data.IValueConverter>
+                SourceName = "MoData",
+                Converters = new List<IValueConverter>
                 {
                     PathToDiskConverter
                 }
             });
+        }
+
+        private void OnKeyPressed(Keys key, bool altPressed)
+        {
+            // Escape to hide MoDetails window
+            if (key == Keys.Escape && MoDetailsWindow != null && MoDetailsWindow.IsVisible)
+            {
+                MoDetailsWindow.Close();
+                MoDetailsWindow = null;
+            }
         }
 
         private void UpdateData()
@@ -202,4 +220,65 @@ namespace MoData
             return new MoDataSettingsView();
         }
     }
+
+    public class GlobalKeyboardHook : IDisposable
+    {
+        private LowLevelKeyboardProc _proc;
+        private IntPtr _hookID = IntPtr.Zero;
+
+        public event Action<Keys, bool> KeyPressed;
+
+        public GlobalKeyboardHook()
+        {
+            _proc = HookCallback;
+            _hookID = SetHook(_proc);
+        }
+
+        public void Dispose()
+        {
+            UnhookWindowsHookEx(_hookID);
+        }
+
+        private IntPtr SetHook(LowLevelKeyboardProc proc)
+        {
+            using (var curProcess = System.Diagnostics.Process.GetCurrentProcess())
+            using (var curModule = curProcess.MainModule)
+            {
+                return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+            }
+        }
+
+        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
+            {
+                int vkCode = Marshal.ReadInt32(lParam);
+                bool altPressed = (System.Windows.Forms.Control.ModifierKeys & Keys.Alt) == Keys.Alt;
+
+                KeyPressed?.Invoke((Keys)vkCode, altPressed);
+            }
+
+            return CallNextHookEx(_hookID, nCode, wParam, lParam);
+        }
+
+        private const int WH_KEYBOARD_LL = 13;
+        private const int WM_KEYDOWN = 0x0100;
+        private const int WM_SYSKEYDOWN = 0x0104;
+
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+    }
+
 }
