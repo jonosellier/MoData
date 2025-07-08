@@ -282,6 +282,10 @@ namespace MoData
                         return matchingDisk?.UsedPercentageAngle;
                     case "Label":
                         return matchingDisk?.Label;
+                    case "UsedPercentInt":
+                        return matchingDisk?.UsedPercentInt;
+                    case "UsedTenthsInt":
+                        return matchingDisk?.UsedTenthsInt;
                     case null:
                         return matchingDisk?.Label;
                     default:
