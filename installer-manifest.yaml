@@ -19,3 +19,9 @@ Packages:
     PackageUrl: https://github.com/jonosellier/MoData/releases/download/v0.1.0/MoData_5a0a672a-998a-4cf3-94ea-44543de5afcb_0_1_0.pext
     Changelog:
       - Rename Extension to Mo Data
+  - Version: 0.1.1
+    RequiredApiVersion: 6.12.0.0
+    ReleaseDate: 2025-07-08
+    PackageUrl: https://github.com/jonosellier/MoData/releases/download/v0.1.1/MoData_5a0a672a-998a-4cf3-94ea-44543de5afcb_0_1_1.pext
+    Changelog:
+      - Add additional props for theme developers

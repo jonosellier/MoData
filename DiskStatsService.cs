@@ -19,6 +19,8 @@ namespace MoData
         public string TotalSpaceString => FormatBytes(TotalSpace);
         public string UsedSpaceString => FormatBytes(UsedSpace);
         public string FreeSpaceString => FormatBytes(FreeSpace);
+        public int UsedTenthsInt => (int)(UsedPercentage / 10);
+        public int UsedPercentInt => (int)UsedPercentage;
 
         private string FormatBytes(long bytes)
         {
