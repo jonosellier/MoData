@@ -6,3 +6,10 @@ Packages:
     PackageUrl: https://github.com/jonosellier/MoData/releases/download/v0.0.1/MoData_5a0a672a-998a-4cf3-94ea-44543de5afcb_0_0_1.pext
     Changelog:
       - Initial Release (DevPreview)
+  - Version: 0.0.2
+    RequiredApiVersion: 6.12.0.0
+    ReleaseDate: 2025-07-07
+    PackageUrl: https://github.com/jonosellier/MoData/releases/download/v0.0.2/MoData_5a0a672a-998a-4cf3-94ea-44543de5afcb_0_0_2.pext
+    Changelog:
+      - Bug fixes
+      - GA release
