@@ -24,7 +24,7 @@ namespace MoData
 
         private string FormatBytes(long bytes)
         {
-            string[] units = { "B", "KB", "MB", "GB", "TB" };
+            string[] units = { "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
             int idx = 0;
             double size = bytes;
             while (size >= 1024 && idx < units.Length - 1)
@@ -32,7 +32,7 @@ namespace MoData
                 size /= 1024;
                 idx++;
             }
-            return $"{size:F2} {units[idx]}";
+            return $"{size:G3} {units[idx]}";
         }
 
         public DiskUsage(string label, long totalSpace, long usedSpace, long freeSpace)
